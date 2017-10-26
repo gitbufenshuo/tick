@@ -1,14 +1,10 @@
 package tick
 
-import (
-	"fmt"
-)
-
 type Event struct {
-	Eid  uint32      //1->build
-	Data interface{} // 房子等级
-	Res  int         //处理结果
-	Tick uint64      //201
+	Eid  uint32
+	Data interface{}
+	Res  int
+	Tick uint64
 }
 
 func NewEvent(eid uint32, data interface{}) *Event {
@@ -51,14 +47,14 @@ func (ell *EventLinkList) ADD(enode *Event) *EventNode {
 	ell.elen += 1
 	return newnode
 }
-func (ell *EventLinkList) Scan() {
+func (ell *EventLinkList) Scan(dealwith func(ev *Event)) {
 	if ell.elen == 0 {
 		return
 	}
 	var tenode = ell.header
 
 	for tenode != nil {
-		fmt.Printf("eid:[%v] data:[%v]\n", tenode.curr.Eid, tenode.curr.Data)
+		dealwith(tenode.curr)
 		tenode = tenode.next
 	}
 }
