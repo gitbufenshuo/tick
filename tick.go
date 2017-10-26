@@ -76,6 +76,7 @@ func (tickWheel *TickWheel) RegisterEventAfter(tick uint64, ev *Event) {
 	if tick == 0 {
 		return
 	}
+	fmt.Printf("REGISTER now:[%v] after:[%v]\n", tickWheel.nowTick, tick)
 	lastTick := tickWheel.nowTick + tick
 	lastTickSlots := tickWheel.SlotsAt(lastTick)
 	var absSlots []*AbsSlot

@@ -19,7 +19,6 @@ func testTickWheel() {
 			hahaEvent := tick.NewEvent(1, hahaData)
 			tickWheel.RegisterEventAfter(31111, hahaEvent)
 		}
-		tickWheel.ShowTick()
 	}
 }
 func main() {

@@ -57,6 +57,9 @@ func (ell *EventLinkList) Scan(dealwith func(ev *Event)) {
 		dealwith(tenode.curr)
 		tenode = tenode.next
 	}
+	ell.elen = 0
+	ell.header = nil
+	ell.tail = nil
 }
 func (ell *EventLinkList) Remove(enode *EventNode) {
 	if ell.header == enode {
