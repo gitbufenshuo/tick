@@ -6,26 +6,44 @@ import (
 
 type TickWheel struct {
 	nowTick    uint64
+	maxTick    uint64
 	levelWheel []*Wheel
 	*Handlers
 }
 
-func NewTickWheel() *TickWheel {
+func NewTickWheel(slotNums []uint8) *TickWheel {
 	var tickWheel TickWheel
-	levelWheel := make([]*Wheel, 6, 6)
-	levelWheel[0] = NewWheel(200, &tickWheel) // [0   -> 199]                     199
-	levelWheel[1] = NewWheel(100, &tickWheel) // [200 -> 19999]                   99*200 + 199 = 19999
-	levelWheel[2] = NewWheel(100, &tickWheel) // [20000 -> 1999999]               99*20000 + 19999 = 1999999
-	levelWheel[3] = NewWheel(100, &tickWheel) // [2000000 -> 199999999]           99*2000000 + 1999999 = 199999999
-	levelWheel[4] = NewWheel(50, &tickWheel)  // [200000000 -> 9999999999]        49*200000000 + 199999999 = 9999999999
-	levelWheel[5] = NewWheel(50, &tickWheel)  // [10000000000 -> 499999999999]    49*10000000000 +  9999999999 = 499999999999
+	wheelNum := len(slotNums)
+	if wheelNum == 0 {
+		return nil
+	}
+	var maxTick uint64 = 1
+	for idx := range slotNums {
+		maxTick *= uint64(slotNums[idx])
+	}
+	maxTick -= 1
+	if maxTick < 0 {
+		return nil
+	}
+	tickWheel.maxTick = maxTick
+	fmt.Printf("New TickWheel: max tick ->[%v]\n", maxTick)
+	levelWheel := make([]*Wheel, wheelNum, wheelNum)
+	for idx := range slotNums {
+		levelWheel[idx] = NewWheel(slotNums[idx], &tickWheel)
+	}
+	// levelWheel[0] = NewWheel(200, &tickWheel) // [0   -> 199]                     199
+	// levelWheel[1] = NewWheel(100, &tickWheel) // [200 -> 19999]                   99*200 + 199 = 19999
+	// levelWheel[2] = NewWheel(100, &tickWheel) // [20000 -> 1999999]               99*20000 + 19999 = 1999999
+	// levelWheel[3] = NewWheel(100, &tickWheel) // [2000000 -> 199999999]           99*2000000 + 1999999 = 199999999
+	// levelWheel[4] = NewWheel(50, &tickWheel)  // [200000000 -> 9999999999]        49*200000000 + 199999999 = 9999999999
+	// levelWheel[5] = NewWheel(50, &tickWheel)  // [10000000000 -> 499999999999]    49*10000000000 +  9999999999 = 499999999999
 	tickWheel.levelWheel = levelWheel
 	tickWheel.Handlers = NewHandlers(&tickWheel)
 	return &tickWheel
 }
 func (tickWheel *TickWheel) SetTick(tick uint64) {
-	if tick > 499999999999 {
-		panic("oh no 499999999999")
+	if tick > tickWheel.maxTick {
+		panic(fmt.Sprintf("tick:[%v] maxtick:[%v]", tick, tickWheel.maxTick))
 	}
 	tickWheel.nowTick = tick
 	for idx, slot := range tickWheel.SlotsAt(tick) {
@@ -33,28 +51,14 @@ func (tickWheel *TickWheel) SetTick(tick uint64) {
 	}
 }
 func (tickWheel *TickWheel) SlotsAt(tick uint64) []uint8 {
-	if tick > 499999999999 {
-		panic("oh no 499999999999")
+	if tick > tickWheel.maxTick {
+		panic(fmt.Sprintf("tick:[%v] maxtick:[%v]", tick, tickWheel.maxTick))
 	}
-	res := make([]uint8, 6, 6)
-
-	res[0] = uint8(tick % 200)
-	tick = tick / 200
-
-	res[1] = uint8(tick % 100)
-	tick = tick / 100
-
-	res[2] = uint8(tick % 100)
-	tick = tick / 100
-
-	res[3] = uint8(tick % 100)
-	tick = tick / 100
-
-	res[4] = uint8(tick % 50)
-	tick = tick / 50
-
-	res[5] = uint8(tick % 50)
-	tick = tick / 50
+	res := make([]uint8, len(tickWheel.levelWheel), len(tickWheel.levelWheel))
+	for idx := range tickWheel.levelWheel {
+		res[idx] = uint8(tick % uint64(tickWheel.levelWheel[idx].slotNum))
+		tick = tick / uint64(tickWheel.levelWheel[idx].slotNum)
+	}
 	return res
 }
 func (tickWheel *TickWheel) ShowTick() {
