@@ -33,7 +33,7 @@ func (wheel *Wheel) Tock() bool {
 	// 遍历自己的相应 slot 处理所有事件
 	evList := wheel.evListArr[wheel.nowTick]
 	var dealwith = func(ev *Event) {
-		wheel.God.Do(ev, wheel.God)
+		wheel.God.Do(ev)
 	}
 	evList.Scan(dealwith)
 	return flow

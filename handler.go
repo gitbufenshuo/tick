@@ -5,12 +5,14 @@ type Handler interface {
 }
 type Handlers struct {
 	handlerMap map[uint32]Handler
+	god        *TickWheel
 }
 
-func NewHandlers() *Handlers {
+func NewHandlers(god *TickWheel) *Handlers {
 	var handlers Handlers
 	handlers.handlerMap = make(map[uint32]Handler)
 	handlers.AddHandler(0, new(ResetEventHandler)) // 内置 0 号 ， 重设事件 handler
+	handlers.god = god
 	return &handlers
 }
 func (handlers *Handlers) AddHandler(eid uint32, handler Handler) {
@@ -20,12 +22,12 @@ func (handlers *Handlers) AddHandler(eid uint32, handler Handler) {
 	}
 	m[eid] = handler
 }
-func (handlers *Handlers) Do(ev *Event, god *TickWheel) {
+func (handlers *Handlers) Do(ev *Event) {
 	m := handlers.handlerMap
 	if handler, ok := m[ev.Eid]; !ok {
-		panic("duplicate event id")
+		panic("event 包含了不识别的 id")
 	} else {
-		handler.Do(ev, god)
+		handler.Do(ev, handlers.god)
 	}
 }
 
@@ -40,7 +42,7 @@ type ResetData struct {
 func (ResetEventHandler *ResetEventHandler) Do(ev *Event, god *TickWheel) {
 	data := ev.Data.(*ResetData)
 	if data.NowIdx == len(data.Slots)-1 {
-		god.Do(data.RealEvent, god)
+		god.Do(data.RealEvent)
 		return
 	}
 	data.NowIdx += 1

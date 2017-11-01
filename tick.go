@@ -20,7 +20,7 @@ func NewTickWheel() *TickWheel {
 	levelWheel[4] = NewWheel(50, &tickWheel)  // [200000000 -> 9999999999]        49*200000000 + 199999999 = 9999999999
 	levelWheel[5] = NewWheel(50, &tickWheel)  // [10000000000 -> 499999999999]    49*10000000000 +  9999999999 = 499999999999
 	tickWheel.levelWheel = levelWheel
-	tickWheel.Handlers = NewHandlers()
+	tickWheel.Handlers = NewHandlers(&tickWheel)
 	return &tickWheel
 }
 func (tickWheel *TickWheel) SetTick(tick uint64) {
